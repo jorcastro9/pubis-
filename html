@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Entrenos" />
+
+  <title>Plan semanal de entrenamiento</title>
+
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111827;
+      --card2: #172033;
+      --line: #273449;
+      --text: #f8fafc;
+      --muted: #9ca3af;
+      --blue: #60a5fa;
+      --green: #6fb12a;
+      --red: #ef4444;
+      --radius: 22px;
+      --shadow: 0 14px 36px rgba(0,0,0,.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont,
+        "SF Pro Text", "Segoe UI", sans-serif;
+
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(96,165,250,.10),
+          transparent 30%
+        ),
+        var(--bg);
+
+      padding:
+        max(16px, env(safe-area-inset-top))
+        14px
+        max(26px, env(safe-area-inset-bottom));
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      max-width: 820px;
+      margin: auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .13em;
+    }
+
+    h1 {
+      font-size: clamp(29px, 7vw, 44px);
+      line-height: 1.02;
+      margin: 0 0 7px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .card {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.025),
+          rgba(255,255,255,0)
+        ),
+        var(--card);
+
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .icon-btn,
+    .back-btn {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 14px;
+      min-height: 44px;
+      padding: 0 13px;
+    }
+
+    /* CALENDARIO */
+
+    .calendar-card {
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2 {
+      font-size: 19px;
+      margin: 0;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .week-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(86px, 1fr));
+      gap: 9px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scroll-snap-type: x proximity;
+    }
+
+    .day {
+      min-width: 86px;
+      scroll-snap-align: start;
+      background: var(--card2);
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      padding: 11px 9px;
+    }
+
+    .day.today {
+      outline: 2px solid var(--blue);
+      outline-offset: -2px;
+    }
+
+    .dow {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .date {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 9px;
+    }
+
+    .day select {
+      width: 100%;
+      background: #0d1524;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      padding: 8px 6px;
+      font-size: 12px;
+    }
+
+    /* TARJETAS ENTRENAMIENTOS */
+
+    .workout-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .workout-card {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      padding: 17px;
+      border-radius: var(--radius);
+      text-align: left;
+      min-height: 128px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      box-shadow: var(--shadow);
+    }
+
+    .workout-card:active {
+      transform: scale(.98);
+    }
+
+    .workout-name {
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      padding: 6px 9px;
+      border-radius: 999px;
+
+      background: rgba(96,165,250,.1);
+      border: 1px solid rgba(96,165,250,.23);
+
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .workout-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* DETALLE */
+
+    .home.hidden {
+      display: none;
+    }
+
+    .detail {
+      display: none;
+    }
+
+    .detail.active {
+      display: block;
+    }
+
+    .detail-top {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .back-btn {
+      width: 44px;
+      padding: 0;
+      font-size: 20px;
+    }
+
+    .detail-title {
+      flex: 1;
+    }
+
+    .detail-title h2 {
+      font-size: 25px;
+      margin: 0 0 4px;
+    }
+
+    .detail-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .block-title {
+      margin: 18px 2px 9px;
+      padding: 9px 12px;
+      border-radius: 12px;
+
+      background: var(--green);
+      color: #fff;
+
+      font-size: 14px;
+      font-weight: 900;
+
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .exercise-list {
+      display: grid;
+      gap: 11px;
+    }
+
+    .exercise-card {
+      padding: 15px;
+    }
+
+    .exercise-title {
+      font-size: 18px;
+      font-weight: 900;
+      margin: 0 0 4px;
+    }
+
+    .exercise-number {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 13px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 8px;
+      margin-bottom: 11px;
+    }
+
+    .metric {
+      background: var(--card2);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 10px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 900;
+      letter-spacing: .04em;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 16px;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      margin-top: 9px;
+      padding: 11px;
+
+      background: rgba(255,255,255,.025);
+      border: 1px solid var(--line);
+
+      border-radius: 13px;
+
+      color: #d1d5db;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .note b {
+      color: var(--text);
+    }
+
+    .video-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      text-decoration: none;
+
+      margin-top: 10px;
+
+      background: var(--red);
+      color: white;
+
+      border-radius: 13px;
+      padding: 11px;
+
+      font-weight: 900;
+    }
+
+    .edit-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .secondary-btn,
+    .danger-btn,
+    .primary-btn {
+      border-radius: 13px;
+      padding: 11px 13px;
+      font-weight: 900;
+      border: 1px solid var(--line);
+    }
+
+    .secondary-btn {
+      background: var(--card2);
+      color: var(--text);
+    }
+
+    .danger-btn {
+      background: rgba(251,113,133,.08);
+      color: #fecdd3;
+      border-color: rgba(251,113,133,.25);
+    }
+
+    .primary-btn {
+      background: var(--blue);
+      color: #06111f;
+      border: none;
+      width: 100%;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* MODAL */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+
+      background: rgba(0,0,0,.62);
+
+      z-index: 99;
+      padding: 12px;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .sheet {
+      width: min(760px,100%);
+      max-height: 90vh;
+
+      overflow: auto;
+
+      background: var(--card);
+
+      border: 1px solid var(--line);
+
+      border-radius: 26px 26px 20px 20px;
+
+      padding: 18px;
+    }
+
+    .sheet h3 {
+      margin: 0 0 14px;
+      font-size: 22px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 10px;
+    }
+
+    .field.full {
+      grid-column: 1/-1;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    input,
+    textarea,
+    .sheet select {
+      width: 100%;
+
+      background: #0d1524;
+      color: var(--text);
+
+      border: 1px solid var(--line);
+
+      border-radius: 12px;
+
+      padding: 11px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+
+    .sheet-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .sheet-actions > * {
+      flex: 1;
+    }
+
+    @media(min-width:650px) {
+
+      .workout-grid {
+        grid-template-columns: repeat(3,1fr);
+      }
+
+      .metrics {
+        grid-template-columns: repeat(5,1fr);
+      }
+
+    }
+
+    @media(max-width:430px) {
+
+      .workout-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2,1fr);
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+<main class="app">
+
+  <!-- PANTALLA PRINCIPAL -->
+
+  <section id="homeView" class="home">
+
+    <div class="topbar">
+
+      <div>
+        <p class="eyebrow">Plan semanal</p>
+
+        <h1>Entrenamientos</h1>
+
+        <p class="subtitle">
+          Planifica la semana y abre cada sesión para ver todos sus ejercicios.
+        </p>
+      </div>
+
+      <button class="icon-btn" id="todayBtn">
+        Hoy
+      </button>
+
+    </div>
+
+
+    <!-- CALENDARIO -->
+
+    <div class="card calendar-card">
+
+      <div class="section-head">
+
+        <div>
+          <h2>Calendario semanal</h2>
+          <div class="small" id="weekLabel"></div>
+        </div>
+
+      </div>
+
+      <div class="week-grid" id="weekGrid"></div>
+
+    </div>
+
+
+    <!-- ENTRENAMIENTOS -->
+
+    <div class="section-head">
+
+      <div>
+        <h2>Sesiones</h2>
+
+        <div class="small">
+          Pulsa para consultar los ejercicios
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="workout-grid" id="workoutGrid"></div>
+
+
+    <p class="footer-note">
+      Tus cambios se guardan en este dispositivo mediante el almacenamiento local del navegador.
+    </p>
+
+  </section>
+
+
+  <!-- DETALLE ENTRENAMIENTO -->
+
+  <section id="detailView" class="detail">
+
+    <div class="detail-top">
+
+      <button class="back-btn" id="backBtn">
+        ←
+      </button>
+
+      <div class="detail-title">
+
+        <h2 id="detailName"></h2>
+
+        <p id="detailSubtitle"></p>
+
+      </div>
+
+    </div>
+
+    <div id="exerciseList"></div>
+
+
+    <button
+      class="primary-btn"
+      id="addExerciseBtn"
+      style="margin-top:14px"
+    >
+      + Añadir ejercicio
+    </button>
+
+  </section>
+
+</main>
+
+
+<!-- MODAL EDICIÓN -->
+
+<div class="modal" id="exerciseModal">
+
+  <div class="sheet">
+
+    <h3 id="modalTitle">
+      Añadir ejercicio
+    </h3>
+
+
+    <div class="form-grid">
+
+      <div class="field full">
+
+        <label>Bloque</label>
+
+        <select id="fBlock">
+
+          <option>Movilidad</option>
+
+          <option>Fuerza</option>
+
+          <option>Fuerza específica</option>
+
+          <option>Otro</option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field full">
+
+        <label>Ejercicio</label>
+
+        <input id="fName" />
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Peso</label>
+
+        <input
+          id="fWeight"
+          placeholder="Ej. 3 kg"
+        />
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Series</label>
+
+        <input
+          id="fSets"
+          inputmode="numeric"
+        />
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Repeticiones / tiempo</label>
+
+        <input
+          id="fReps"
+          placeholder="Ej. 5 / 20 seg"
+        />
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Descanso</label>
+
+        <input id="fRest" />
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Dolor (EVA)</label>
+
+        <input id="fPain" />
+
+      </div>
+
+
+      <div class="field">
+
+        <label>RPE</label>
+
+        <input id="fRpe" />
+
+      </div>
+
+
+      <div class="field full">
+
+        <label>Explicación</label>
+
+        <textarea id="fExplanation"></textarea>
+
+      </div>
+
+
+      <div class="field full">
+
+        <label>Sustitución opción 1</label>
+
+        <input id="fSubstitution" />
+
+      </div>
+
+
+      <div class="field full">
+
+        <label>Vídeo de YouTube</label>
+
+        <input
+          id="fVideo"
+          inputmode="url"
+          placeholder="https://youtube.com/..."
+        />
+
+      </div>
+
+    </div>
+
+
+    <div class="sheet-actions">
+
+      <button
+        class="secondary-btn"
+        id="cancelBtn"
+      >
+        Cancelar
+      </button>
+
+
+      <button
+        class="primary-btn"
+        id="saveBtn"
+      >
+        Guardar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const TYPES = [
+  "Recuperación",
+  "Bajo estrés 1",
+  "Bajo estrés 2",
+  "Estrés medio",
+  "Pre partido"
+];
+
+
+const DATA_KEY = "entrenamientos_app_v2";
+
+const WEEK_KEY = "entrenamientos_semana_v2";
+
+
+/* ===========================
+   ENTRENAMIENTOS PRECARGADOS
+   =========================== */
+
+const PRELOADED = {
+
+
+  /* RECUPERACIÓN */
+
+  "Recuperación": [
+
+    {
+      block: "Movilidad",
+      name: "Rotación lateral de tronco de lado",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Movilidad",
+      name: "Extensión Foam",
+      weight: "",
+      sets: "2",
+      reps: "6",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Movilidad",
+      name: "Dorso de gato",
+      weight: "",
+      sets: "2",
+      reps: "6",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Movilidad",
+      name: "Neurodinamia Foam",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    }
+
+  ],
+
+
+  /* BAJO ESTRÉS 1 */
+
+  "Bajo estrés 1": [
+
+    {
+      block: "Movilidad",
+      name: "Rotación lateral de tronco cuadrupedia",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Movilidad",
+      name: "Retroversión rodilla apoyada",
+      weight: "",
+      sets: "2",
+      reps: "6",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza",
+      name: "Zancada ISO + Med Ball",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza",
+      name: "Monster Walk",
+      weight: "",
+      sets: "2",
+      reps: "8 pasos",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza",
+      name: "Wall Drill plano frontal",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    }
+
+  ],
+
+
+  /* BAJO ESTRÉS 2 */
+
+  "Bajo estrés 2": [
+
+    {
+      block: "Movilidad",
+      name: "Rotación lateral de tronco + banda",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Movilidad",
+      name: "Retroversión rodilla apoyada",
+      weight: "",
+      sets: "2",
+      reps: "6",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Sentadilla ISO pared",
+      weight: "",
+      sets: "2",
+      reps: "20 seg",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Extensión con banda oscilatorio",
+      weight: "",
+      sets: "2",
+      reps: "6",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Hip Airplane",
+      weight: "3 kg",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "6",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Aterrizaje unilateral desde cajón",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "0",
+      rpe: "2",
+      explanation: "",
+      video: ""
+    }
+
+  ],
+
+
+  /* ESTRÉS MEDIO */
+
+  "Estrés medio": [
+
+    {
+      block: "Movilidad",
+      name: "Retroversión pared balón entre rodillas",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Movilidad",
+      name: "Dorso de gato",
+      weight: "",
+      sets: "2",
+      reps: "6",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Wall Drill ISO",
+      weight: "",
+      sets: "2",
+      reps: "8 seg",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Sentadilla lateral + Slider",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "Controlando rango de movimiento",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Glut Med Wall ISO + bisagra",
+      weight: "",
+      sets: "2",
+      reps: "3",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Drop Squat 90º",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    }
+
+  ],
+
+
+  /* PRE PARTIDO */
+
+  "Pre partido": [
+
+    {
+      block: "Movilidad",
+      name: "Rotación lateral rodilla apoyada",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Movilidad",
+      name: "Retroversión Fitball",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Zancada ISO + banda anti-rotación",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Puente glúteo anti-extensión",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Wall Drill Reach",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    },
+
+    {
+      block: "Fuerza específica",
+      name: "Aterrizaje desde cajón",
+      weight: "",
+      sets: "2",
+      reps: "5",
+      rest: "",
+      substitution: "",
+      pain: "",
+      rpe: "",
+      explanation: "",
+      video: ""
+    }
+
+  ]
+
+};
+
+
+/* ===========================
+   FUNCIONES GENERALES
+   =========================== */
+
+const clone = objeto =>
+  JSON.parse(JSON.stringify(objeto));
+
+
+const load = (key, fallback) => {
+
+  try {
+
+    const saved = localStorage.getItem(key);
+
+    return saved
+      ? JSON.parse(saved)
+      : clone(fallback);
+
+  } catch {
+
+    return clone(fallback);
+
+  }
+
+};
+
+
+let data = load(DATA_KEY, PRELOADED);
+
+let week = load(WEEK_KEY, {});
+
+let selected = null;
+
+let editing = null;
+
+let weekStart = getMonday(new Date());
+
+
+const $ = id =>
+  document.getElementById(id);
+
+
+const esc = value =>
+  String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+
+function saveData() {
+
+  localStorage.setItem(
+    DATA_KEY,
+    JSON.stringify(data)
+  );
+
+}
+
+
+function saveWeek() {
+
+  localStorage.setItem(
+    WEEK_KEY,
+    JSON.stringify(week)
+  );
+
+}
+
+
+function getMonday(date) {
+
+  const d = new Date(date);
+
+  d.setHours(0,0,0,0);
+
+  const day = d.getDay();
+
+  d.setDate(
+    d.getDate() +
+    (day === 0 ? -6 : 1 - day)
+  );
+
+  return d;
+
+}
+
+
+function iso(date) {
+
+  return (
+    date.getFullYear() +
+    "-" +
+    String(date.getMonth() + 1).padStart(2,"0") +
+    "-" +
+    String(date.getDate()).padStart(2,"0")
+  );
+
+}
+
+
+function fmt(date, options) {
+
+  return new Intl.DateTimeFormat(
+    "es-ES",
+    options
+  ).format(date);
+
+}
+
+
+/* ===========================
+   CALENDARIO
+   =========================== */
+
+function renderWeek() {
+
+  $("weekGrid").innerHTML = "";
+
+
+  const weekEnd =
+    new Date(weekStart);
+
+
+  weekEnd.setDate(
+    weekEnd.getDate() + 6
+  );
+
+
+  $("weekLabel").textContent =
+    `${fmt(
+      weekStart,
+      {
+        day:"numeric",
+        month:"short"
+      }
+    )} – ${
+      fmt(
+        weekEnd,
+        {
+          day:"numeric",
+          month:"short",
+          year:"numeric"
+        }
+      )
+    }`;
+
+
+  const today =
+    iso(new Date());
+
+
+  for (
+    let i = 0;
+    i < 7;
+    i++
+  ) {
+
+    const date =
+      new Date(weekStart);
+
+
+    date.setDate(
+      date.getDate() + i
+    );
+
+
+    const key =
+      iso(date);
+
+
+    const element =
+      document.createElement("div");
+
+
+    element.className =
+      "day" +
+      (
+        key === today
+          ? " today"
+          : ""
+      );
+
+
+    const options = [
+
+      `<option value="">
+        Descanso
+      </option>`,
+
+      ...TYPES.map(type =>
+
+        `<option
+          value="${esc(type)}"
+          ${
+            week[key] === type
+              ? "selected"
+              : ""
+          }
+        >
+          ${esc(type)}
+        </option>`
+
+      )
+
+    ].join("");
+
+
+    element.innerHTML = `
+
+      <div class="dow">
+        ${
+          fmt(
+            date,
+            {weekday:"short"}
+          ).replace(".","")
+        }
+      </div>
+
+      <div class="date">
+        ${date.getDate()}
+      </div>
+
+      <select>
+        ${options}
+      </select>
+
+    `;
+
+
+    element
+      .querySelector("select")
+      .onchange = event => {
+
+        if (event.target.value) {
+
+          week[key] =
+            event.target.value;
+
+        } else {
+
+          delete week[key];
+
+        }
+
+        saveWeek();
+
+      };
+
+
+    $("weekGrid")
+      .appendChild(element);
+
+  }
+
+}
+
+
+/* ===========================
+   TARJETAS
+   =========================== */
+
+function renderCards() {
+
+  $("workoutGrid").innerHTML = "";
+
+
+  TYPES.forEach(type => {
+
+    const button =
+      document.createElement("button");
+
+
+    button.className =
+      "workout-card";
+
+
+    const exercises =
+      data[type] || [];
+
+
+    const count =
+      exercises.length;
+
+
+    button.innerHTML = `
+
+      <div>
+
+        <div class="workout-name">
+          ${esc(type)}
+        </div>
+
+        <span class="pill">
+
+          ${count}
+
+          ejercicio${count === 1 ? "" : "s"}
+
+        </span>
+
+      </div>
+
+
+      <div class="workout-meta">
+
+        <span>
+          Ver sesión
+        </span>
+
+        <span>
+          →
+        </span>
+
+      </div>
+
+    `;
+
+
+    button.onclick =
+      () => openWorkout(type);
+
+
+    $("workoutGrid")
+      .appendChild(button);
+
+  });
+
+}
+
+
+/* ===========================
+   ABRIR ENTRENAMIENTO
+   =========================== */
+
+function openWorkout(type) {
+
+  selected = type;
+
+
+  $("homeView")
+    .classList
+    .add("hidden");
+
+
+  $("detailView")
+    .classList
+    .add("active");
+
+
+  $("detailName")
+    .textContent =
+      type;
+
+
+  renderExercises();
+
+
+  scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+/* ===========================
+   VOLVER
+   =========================== */
+
+function closeWorkout() {
+
+  $("detailView")
+    .classList
+    .remove("active");
+
+
+  $("homeView")
+    .classList
+    .remove("hidden");
+
+
+  selected = null;
+
+  editing = null;
+
+
+  renderCards();
+
+
+  scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+/* ===========================
+   MOSTRAR EJERCICIOS
+   =========================== */
+
+function renderExercises() {
+
+  const exercises =
+    data[selected] || [];
+
+
+  $("detailSubtitle")
+    .textContent =
+
+    `${exercises.length} ejercicio${
+      exercises.length === 1
+        ? ""
+        : "s"
+    }`;
+
+
+  const host =
+    $("exerciseList");
+
+
+  host.innerHTML = "";
+
+
+  const blocks =
+    [
+      ...new Set(
+        exercises.map(
+          exercise =>
+            exercise.block || "Otro"
+        )
+      )
+    ];
+
+
+  blocks.forEach(block => {
+
+    const heading =
+      document.createElement("div");
+
+
+    heading.className =
+      "block-title";
+
+
+    heading.textContent =
+      block;
+
+
+    host.appendChild(heading);
+
+
+    exercises.forEach(
+      (exercise,index) => {
+
+        if (
+          (exercise.block || "Otro")
+          !== block
+        ) {
+
+          return;
+
+        }
+
+
+        const card =
+          document.createElement("div");
+
+
+        card.className =
+          "card exercise-card";
+
+
+        const notes = [
+
+          exercise.explanation
+            ? `
+              <div class="note">
+                <b>Explicación:</b>
+                ${esc(exercise.explanation)}
+              </div>
+            `
+            : "",
+
+
+          exercise.rest
+            ? `
+              <div class="note">
+                <b>Descanso:</b>
+                ${esc(exercise.rest)}
+              </div>
+            `
+            : "",
+
+
+          exercise.substitution
+            ? `
+              <div class="note">
+                <b>Sustitución:</b>
+                ${esc(exercise.substitution)}
+              </div>
+            `
+            : ""
+
+        ].join("");
+
+
+        card.innerHTML = `
+
+          <div class="exercise-title">
+            ${
+              esc(
+                exercise.name ||
+                "Ejercicio"
+              )
+            }
+          </div>
+
+
+          <div class="exercise-number">
+            Ejercicio ${index + 1}
+          </div>
+
+
+          <div class="metrics">
+
+
+            <div class="metric">
+
+              <div class="metric-label">
+                Peso
+              </div>
+
+              <div class="metric-value">
+                ${
+                  esc(
+                    exercise.weight ||
+                    "—"
+                  )
+                }
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-label">
+                Series
+              </div>
+
+              <div class="metric-value">
+                ${
+                  esc(
+                    exercise.sets ||
+                    "—"
+                  )
+                }
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-label">
+                Reps / tiempo
+              </div>
+
+              <div class="metric-value">
+                ${
+                  esc(
+                    exercise.reps ||
+                    "—"
+                  )
+                }
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-label">
+                Dolor EVA
+              </div>
+
+              <div class="metric-value">
+                ${
+                  esc(
+                    exercise.pain ||
+                    "—"
+                  )
+                }
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-label">
+                RPE
+              </div>
+
+              <div class="metric-value">
+                ${
+                  esc(
+                    exercise.rpe ||
+                    "—"
+                  )
+                }
+              </div>
+
+            </div>
+
+
+          </div>
+
+
+          ${notes}
+
+
+          ${
+            exercise.video
+
+              ? `
+                <a
+                  class="video-btn"
+                  target="_blank"
+                  rel="noopener"
+                  href="${esc(exercise.video)}"
+                >
+                  ▶ Ver vídeo en YouTube
+                </a>
+              `
+
+              : ""
+          }
+
+
+          <div class="edit-row">
+
+            <button
+              class="secondary-btn edit"
+              data-i="${index}"
+            >
+              Editar
+            </button>
+
+
+            <button
+              class="danger-btn del"
+              data-i="${index}"
+            >
+              Eliminar
+            </button>
+
+          </div>
+
+        `;
+
+
+        host.appendChild(card);
+
+      }
+
+    );
+
+  });
+
+
+  host
+    .querySelectorAll(".edit")
+    .forEach(button => {
+
+      button.onclick =
+        () =>
+          openModal(
+            Number(button.dataset.i)
+          );
+
+    });
+
+
+  host
+    .querySelectorAll(".del")
+    .forEach(button => {
+
+      button.onclick =
+        () =>
+          deleteExercise(
+            Number(button.dataset.i)
+          );
+
+    });
+
+}
+
+
+/* ===========================
+   FORMULARIO
+   =========================== */
+
+const fields = {
+
+  block: $("fBlock"),
+
+  name: $("fName"),
+
+  weight: $("fWeight"),
+
+  sets: $("fSets"),
+
+  reps: $("fReps"),
+
+  rest: $("fRest"),
+
+  pain: $("fPain"),
+
+  rpe: $("fRpe"),
+
+  explanation:
+    $("fExplanation"),
+
+  substitution:
+    $("fSubstitution"),
+
+  video:
+    $("fVideo")
+
+};
+
+
+/* ===========================
+   ABRIR MODAL
+   =========================== */
+
+function openModal(index = null) {
+
+  editing = index;
+
+
+  $("modalTitle").textContent =
+
+    index === null
+
+      ? "Añadir ejercicio"
+
+      : "Editar ejercicio";
+
+
+  const exercise =
+
+    index === null
+
+      ? {}
+
+      : data[selected][index];
+
+
+  Object
+    .entries(fields)
+    .forEach(
+      ([key,element]) => {
+
+        element.value =
+
+          exercise[key]
+
+          ||
+
+          (
+            key === "block"
+              ? "Movilidad"
+              : ""
+          );
+
+      }
+    );
+
+
+  $("exerciseModal")
+    .classList
+    .add("open");
+
+}
+
+
+/* ===========================
+   CERRAR MODAL
+   =========================== */
+
+function closeModal() {
+
+  $("exerciseModal")
+    .classList
+    .remove("open");
+
+
+  editing = null;
+
+}
+
+
+/* ===========================
+   GUARDAR EJERCICIO
+   =========================== */
+
+function saveExercise() {
+
+  if (
+    !fields.name.value.trim()
+  ) {
+
+    alert(
+      "Introduce el nombre del ejercicio."
+    );
+
+    return;
+
+  }
+
+
+  const exercise = {};
+
+
+  Object
+    .entries(fields)
+    .forEach(
+      ([key,element]) => {
+
+        exercise[key] =
+          element.value.trim();
+
+      }
+    );
+
+
+  if (editing === null) {
+
+    data[selected]
+      .push(exercise);
+
+  } else {
+
+    data[selected][editing] =
+      exercise;
+
+  }
+
+
+  saveData();
+
+  closeModal();
+
+  renderExercises();
+
+}
+
+
+/* ===========================
+   ELIMINAR EJERCICIO
+   =========================== */
+
+function deleteExercise(index) {
+
+  const exercise =
+    data[selected][index];
+
+
+  const confirmation =
+    confirm(
+      `¿Eliminar "${exercise.name}"?`
+    );
+
+
+  if (!confirmation) {
+
+    return;
+
+  }
+
+
+  data[selected]
+    .splice(index,1);
+
+
+  saveData();
+
+  renderExercises();
+
+}
+
+
+/* ===========================
+   BOTONES
+   =========================== */
+
+$("backBtn").onclick =
+  closeWorkout;
+
+
+$("addExerciseBtn").onclick =
+  () => openModal();
+
+
+$("cancelBtn").onclick =
+  closeModal;
+
+
+$("saveBtn").onclick =
+  saveExercise;
+
+
+$("todayBtn").onclick =
+  () => {
+
+    weekStart =
+      getMonday(new Date());
+
+    renderWeek();
+
+  };
+
+
+$("exerciseModal").onclick =
+  event => {
+
+    if (
+      event.target ===
+      $("exerciseModal")
+    ) {
+
+      closeModal();
+
+    }
+
+  };
+
+
+/* ===========================
+   INICIAR APP
+   =========================== */
+
+renderWeek();
+
+renderCards();
+
+</script>
+
+</body>
+</html>
